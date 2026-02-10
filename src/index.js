@@ -1,49 +1,51 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import connectDB from './config/conn.js'; // Note .js
-// import authRoutes from './routes/authRoutes.js'; // 
+import path from "path";
+import express, { json, urlencoded } from "express";
+import logger from "morgan";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+import { port } from "./config/index.js";
+import connectDB from "./config/conn.js";
+import Api from "./routes/indexRoute.js";
 
-// Load config
-dotenv.config();
-
-// Connect to Database
-connectDB();
+// Setup __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 
-// Middleware
-app.use(helmet());
+// Database Connection
+connectDB();
+
+app.use(json({ limit: "100mb" }));
+app.use(urlencoded({ extended: false, limit: "100mb" }));
+app.use(cookieParser());
 app.use(cors());
-app.use(express.json());
 
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-}
+app.use(
+    logger("dev", {
+        skip: (req, res) => req.originalUrl.includes("/static/"),
+    })
+);
 
-// Routes
-// app.use('/api/auth', authRoutes);
+// Static file routes
+app.use("/uploads", express.static(path.join(process.cwd(), "public/uploads")));
 
-// 404 Handler
-app.use((req, res, next) => {
-  const error = new Error(`Not Found - ${req.originalUrl}`);
-  res.status(404);
-  next(error);
-});
+// Versioned API Routes
+app.use("/api/v1", Api);
 
-// Global Error Handler
-app.use((err, req, res, next) => {
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  res.status(statusCode).json({
-    message: err.message,
-    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
-  });
-});
+// Serve frontend
+const publicDir = join(__dirname, "../public");
+app.use(express.static(publicDir));
 
-const PORT = process.env.PORT || 5000;
+// app.get("*", (req, res) => {
+//     // Check if file exists before sending to avoid errors
+//     res.sendFile("index.html", { root: publicDir }, (err) => {
+//         if (err) {
+//             res.status(200).send("API is running. Frontend build not found.");
+//         }
+//     });
+// });
 
-app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-});
+app.listen(port, () => console.log(`Server running at port ${port}...`));
