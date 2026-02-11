@@ -5,10 +5,16 @@ import { StatusCodes } from "http-status-codes";
 
 export const createTodo = async (req, res) => {
     try {
-        const validatedData = todoSchema.parse(req.body);
-        const todo = await todoModel.create({ ...validatedData, user: req.user.id });
+        const validatedData = todoSchema.parse(req.body); 
+        
+        const todo = await todoModel.create({ 
+            ...validatedData, 
+            user: req.user.id 
+        });
+        
         return success("Todo created", todo, StatusCodes.CREATED, res, 5);
     } catch (err) {
+
         return exception(null, StatusCodes.BAD_REQUEST, res, err);
     }
 };

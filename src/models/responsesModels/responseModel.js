@@ -1,6 +1,6 @@
-// import { logger } from '../../utils/logger.js';
 import { randomUUID } from 'crypto';
 
+// Standardized response codes
 /*
 Code:
 0 = Error
@@ -8,14 +8,6 @@ Code:
 6 = Logout
 */
 
-/**
- * 
- * @param {string} message 
- * @param {array} results 
- * @param {number} statusCode 
- * @param {object} responseObj
- * @param {number} code
- */
 const success = (message, results, statusCode, responseObj, code) => {
     return responseObj.status(statusCode).json({
         data: results,
@@ -25,15 +17,6 @@ const success = (message, results, statusCode, responseObj, code) => {
     });
 };
 
-/**
- * 
- * @param {string} message 
- * @param {string} token 
- * @param {array} results 
- * @param {number} statusCode 
- * @param {object} responseObj
- * @param {number} code
- */
 const successAuth = (message, token, results, statusCode, responseObj, code) => {
     return responseObj.status(statusCode).json({
         data: results,
@@ -44,16 +27,9 @@ const successAuth = (message, token, results, statusCode, responseObj, code) => 
     });
 };
 
-/**
- * 
- * @param {string} message 
- * @param {number} statusCode 
- * @param {object} responseObj
- * @param {object} err
- */
 const error = (message, statusCode, responseObj, err = {}) => {
     if (Object.keys(err).length > 0) {
-        logger.error(message, responseObj.req.originalUrl, err);
+        console.error(`[Error] ${message}:`, err); 
     }
 
     return responseObj.status(statusCode).json({
@@ -63,17 +39,12 @@ const error = (message, statusCode, responseObj, err = {}) => {
     });
 };
 
-/**
- * 
- * @param {string} message 
- * @param {object} errorData 
- * @param {number} statusCode 
- * @param {object} responseObj
- */
 const exception = (message, statusCode, responseObj, errorData) => {
     message = message || errorData.message;
     const uniqueId = randomUUID();
-    logger.fatal(uniqueId, responseObj.req.originalUrl, errorData);
+    
+    // Check if logger exists, otherwise use console
+    console.error(`[Exception ID: ${uniqueId}] ${responseObj.req.originalUrl}:`, errorData);
 
     return responseObj.status(statusCode).json({
         error: true,
