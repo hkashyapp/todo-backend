@@ -11,8 +11,8 @@ const options = {
     toObject: { virtuals: true },
     toJSON: { virtuals: true },
     timestamps: {
-        createdAt: "createdDate",
-        updatedAt: "updatedDate",
+        createdAt: "created_at",
+        updatedAt: "updated_at",
     },
 };
 

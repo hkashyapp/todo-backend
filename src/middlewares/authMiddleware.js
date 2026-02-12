@@ -6,18 +6,23 @@ import { JWTSecret } from "../config/index.js";
 export const apiMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
 
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-        const token = authHeader.split(" ")[1];
-
-        jwt.verify(token, JWTSecret, (err, decoded) => {
-            if (err) {
-                return error("Session expired. Please login again.", StatusCodes.UNAUTHORIZED, res, err);
-            }
-            req.user = { id: decoded.id || decoded._id };
-
-            next();
-        });
-    } else {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return error("Authorization token required.", StatusCodes.UNAUTHORIZED, res);
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    try {
+        const decoded = jwt.verify(token, JWTSecret);
+        req.user = {
+            id: decoded.id || decoded._id,
+            role: decoded.role || "user",
+        };
+        next();
+    } catch (err) {
+        if (err.name === "TokenExpiredError") {
+            return error("Access token expired. Please refresh your token.", StatusCodes.UNAUTHORIZED, res);
+        }
+        return error("Invalid token. Please login again.", StatusCodes.UNAUTHORIZED, res);
     }
 };

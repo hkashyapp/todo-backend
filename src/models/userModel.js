@@ -6,14 +6,18 @@ const options = {
   toObject: { virtuals: true },
   toJSON: { virtuals: true },
   timestamps: {
-    createdAt: "createdDate",
-    updatedAt: "updatedDate",
+    createdAt: "created_at",
+    updatedAt: "updated_at",
   },
 };
 
 const userSchema = new mongoose.Schema(
   {
-    fullName: { type: String, trim: true },
+    fullName: {
+      type: String,
+      required: [true, "Full name is required"],
+      trim: true,
+    },
     email: {
       type: String,
       required: [true, "Email is required"],
@@ -23,6 +27,15 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
+    },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+    refreshToken: {
+      type: String,
+      default: null,
     },
     isActive: { type: Boolean, default: true },
   },

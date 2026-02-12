@@ -1,13 +1,5 @@
 import { randomUUID } from 'crypto';
 
-// Standardized response codes
-/*
-Code:
-0 = Error
-5 = Success
-6 = Logout
-*/
-
 const success = (message, results, statusCode, responseObj, code) => {
     return responseObj.status(statusCode).json({
         data: results,
@@ -17,10 +9,11 @@ const success = (message, results, statusCode, responseObj, code) => {
     });
 };
 
-const successAuth = (message, token, results, statusCode, responseObj, code) => {
+const successAuth = (message, accessToken, refreshToken, results, statusCode, responseObj, code) => {
     return responseObj.status(statusCode).json({
         data: results,
-        _token: token,
+        _token: accessToken,
+        _refreshToken: refreshToken,
         error: false,
         message,
         code,
@@ -29,7 +22,7 @@ const successAuth = (message, token, results, statusCode, responseObj, code) => 
 
 const error = (message, statusCode, responseObj, err = {}) => {
     if (Object.keys(err).length > 0) {
-        console.error(`[Error] ${message}:`, err); 
+        console.error(`[Error] ${message}:`, err);
     }
 
     return responseObj.status(statusCode).json({
@@ -42,8 +35,7 @@ const error = (message, statusCode, responseObj, err = {}) => {
 const exception = (message, statusCode, responseObj, errorData) => {
     message = message || errorData.message;
     const uniqueId = randomUUID();
-    
-    // Check if logger exists, otherwise use console
+
     console.error(`[Exception ID: ${uniqueId}] ${responseObj.req.originalUrl}:`, errorData);
 
     return responseObj.status(statusCode).json({
